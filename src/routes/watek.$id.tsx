@@ -17,6 +17,7 @@ type Thread = {
   pinned: boolean;
   created_at: string;
   author: { id: string; username: string; accent_color: string | null } | null;
+  image_urls: string | null;
 };
 
 type Comment = {
@@ -48,7 +49,7 @@ function ThreadView() {
   async function loadThread() {
     const { data } = await supabase
       .from("threads" as any)
-      .select("id,title,content,views,pinned,created_at,author:profiles!threads_author_id_fkey(id,username,accent_color)")
+      .select("id,title,content,views,pinned,created_at,image_urls,author:profiles!threads_author_id_fkey(id,username,accent_color)")
       .eq("id", id)
       .single();
     setThread(data as unknown as Thread);
@@ -167,6 +168,21 @@ function ThreadView() {
           <div className="prose prose-invert max-w-none text-sm whitespace-pre-line">
             {thread.content}
           </div>
+
+          {thread.image_urls && (
+            <div className="mt-6 space-y-4">
+              {thread.image_urls.split(',').filter(Boolean).map((url, i) => (
+                <div key={i} className="max-w-xl overflow-hidden border border-neutral-800 bg-neutral-900/20">
+                  <img 
+                    src={url} 
+                    alt={`Załącznik ${i + 1}`} 
+                    className="w-full h-auto max-h-[600px] object-contain select-none"
+                    loading="lazy"
+                  />
+                </div>
+              ))}
+            </div>
+          )}
 
           {canDelete && (
             <button

@@ -100,7 +100,7 @@ function AddPost() {
       setError(error.message);
       return;
     }
-    navigate({ to: "/" });
+    window.location.href = "/";
   }
 
   if (authLoading) {

@@ -34,7 +34,7 @@ function Index() {
   const [searchInContent, setSearchInContent] = useState(false);
 
   useEffect(() => {
-    (async () => {
+    async function fetchThreads() {
       const { data } = await supabase
         .from("threads")
         .select("id,title,views,pinned,created_at,author:profiles!threads_author_id_fkey(username,accent_color),comments(count)")
@@ -44,7 +44,19 @@ function Index() {
       setThreads((data as unknown as ThreadRow[]) ?? []);
       setFilteredThreads((data as unknown as ThreadRow[]) ?? []);
       setLoading(false);
-    })();
+    }
+
+    fetchThreads();
+
+    // Realtime – odświeżaj listę gdy pojawi się nowy wątek
+    const channel = supabase
+      .channel("threads-realtime")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "threads" }, () => {
+        fetchThreads();
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   useEffect(() => {
